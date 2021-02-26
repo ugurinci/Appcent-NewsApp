@@ -3,17 +3,17 @@ package com.ugurinci.appcentnewsapp.adapter
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.navigation.NavDirections
 import androidx.navigation.Navigation
 import androidx.recyclerview.widget.RecyclerView
 import com.squareup.picasso.Picasso
 import com.ugurinci.appcentnewsapp.R
 import com.ugurinci.appcentnewsapp.model.Article
-import com.ugurinci.appcentnewsapp.view.HomeFragmentDirections
+import com.ugurinci.appcentnewsapp.model.Favorites
+import com.ugurinci.appcentnewsapp.view.FavoriteFragmentDirections
 import kotlinx.android.synthetic.main.row_layout.view.*
 
-class RecyclerViewAdapter(val articleList: List<Article>, val listener: Listener) :
-    RecyclerView.Adapter<RecyclerViewAdapter.RowHolder>() {
+class RecyclerViewFavoriteAdapter(val listener: Listener) :
+    RecyclerView.Adapter<RecyclerViewFavoriteAdapter.RowHolder>() {
 
     interface Listener {
         fun onItemClick(article: Article)
@@ -28,6 +28,8 @@ class RecyclerViewAdapter(val articleList: List<Article>, val listener: Listener
             var contentP: String = ""
             var urlToImageP: String = ""
             var urlP: String = ""
+            var source: String = ""
+            var description: String = ""
 
             if (article.title != null) {
                 titleP = article.title
@@ -53,25 +55,39 @@ class RecyclerViewAdapter(val articleList: List<Article>, val listener: Listener
                 urlP = article.url
             }
 
+            if (article.source.name != null) {
+                source = article.source.name
+            }
+
+            if (article.description != null) {
+                description = article.description
+            }
+
             itemView.setOnClickListener {
                 listener.onItemClick(article)
-                Navigation.findNavController(it).navigate(
-                    HomeFragmentDirections.actionHomeFragmentToDetailFragment(
-                        titleP,
-                        authorP,
-                        publishedAtP,
-                        contentP,
-                        urlToImageP,
-                        urlP
+                Navigation.findNavController(it)
+                    .navigate(
+                        FavoriteFragmentDirections.actionFavoriteFragmentToDetailFragment(
+                            titleP,
+                            authorP,
+                            publishedAtP,
+                            contentP,
+                            urlToImageP,
+                            urlP,
+                            source,
+                            description
+                        )
                     )
-                )
             }
 
             itemView.textViewTitle.text = article.title
             itemView.textViewDate.text = article.publishedAt
             itemView.textViewSource.text = article.source.name
             itemView.textViewDescription.text = article.description
-            Picasso.get().load(article.urlToImage).into(itemView.imageViewNews)
+
+            if (urlToImageP != "") {
+                Picasso.get().load(urlToImageP).into(itemView.imageViewNews)
+            }
         }
     }
 
@@ -81,10 +97,10 @@ class RecyclerViewAdapter(val articleList: List<Article>, val listener: Listener
     }
 
     override fun onBindViewHolder(holder: RowHolder, position: Int) {
-        holder.bind(articleList[position], listener)
+        holder.bind(Favorites.article[position], listener)
     }
 
     override fun getItemCount(): Int {
-        return articleList.size
+        return Favorites.article.size
     }
 }

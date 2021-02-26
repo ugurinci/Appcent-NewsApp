@@ -1,14 +1,18 @@
 package com.ugurinci.appcentnewsapp.view
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.navigation.Navigation
 import com.squareup.picasso.Picasso
 import com.ugurinci.appcentnewsapp.R
+import com.ugurinci.appcentnewsapp.model.Article
+import com.ugurinci.appcentnewsapp.model.Favorites
+import com.ugurinci.appcentnewsapp.model.Source
 import kotlinx.android.synthetic.main.fragment_detail.*
-import kotlinx.android.synthetic.main.row_layout.view.*
 
 class DetailFragment : Fragment() {
 
@@ -29,20 +33,61 @@ class DetailFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         arguments?.let {
+            val url = DetailFragmentArgs.fromBundle(it).url
+
             val author = DetailFragmentArgs.fromBundle(it).author
             val content = DetailFragmentArgs.fromBundle(it).content
             val publishedAt = DetailFragmentArgs.fromBundle(it).publishedAt
             val title = DetailFragmentArgs.fromBundle(it).title
-            val url = DetailFragmentArgs.fromBundle(it).url
+
             val urlToImage = DetailFragmentArgs.fromBundle(it).urlToImage
 
-            textViewDetail_Author.text = author
-            textViewDetail_Content.text = content
-            textViewDetail_PublishedAt.text = publishedAt
-            textViewDetail_Title.text = title
+            val source = Source("", DetailFragmentArgs.fromBundle(it).source)
+            val description = DetailFragmentArgs.fromBundle(it).description
 
-            if (urlToImage != "") {
-                Picasso.get().load(urlToImage).into(imageViewDetail)
+            textViewDetail_Author.text = DetailFragmentArgs.fromBundle(it).author
+            textViewDetail_Content.text = DetailFragmentArgs.fromBundle(it).content
+            textViewDetail_PublishedAt.text = DetailFragmentArgs.fromBundle(it).publishedAt
+            textViewDetail_Title.text = DetailFragmentArgs.fromBundle(it).title
+
+            if (DetailFragmentArgs.fromBundle(it).urlToImage != "") {
+                Picasso.get().load(DetailFragmentArgs.fromBundle(it).urlToImage)
+                    .into(imageViewDetail)
+            }
+
+            if (url == null) {
+                buttonDetail_NewsSource.visibility = View.INVISIBLE
+            } else {
+                buttonDetail_NewsSource.setOnClickListener {
+                    Navigation.findNavController(it)
+                        .navigate(DetailFragmentDirections.actionDetailFragmentToWebFragment(url))
+                }
+            }
+
+            imageButtonDetail_Favorite.setOnClickListener {
+                Favorites.article.add(
+                    Article(
+                        source,
+                        author,
+                        title,
+                        description,
+                        url,
+                        urlToImage,
+                        publishedAt,
+                        content
+                    )
+                )
+            }
+
+            imageButtonDetail_Share.setOnClickListener {
+                val sendIntent: Intent = Intent().apply {
+                    action = Intent.ACTION_SEND
+                    putExtra(Intent.EXTRA_TEXT, url)
+                    type = "text/plain"
+                }
+
+                val shareIntent = Intent.createChooser(sendIntent, null)
+                startActivity(shareIntent)
             }
         }
     }
